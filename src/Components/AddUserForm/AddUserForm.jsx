@@ -8,7 +8,7 @@ import Button from '@material-ui/core/Button';
 export default function AddressForm({ setIsOpen, addUser }) {
     const [formData, setFormData] = useState({
         id: Math.floor(Math.random() * 10000),
-        name: "",
+        firstname: "",
         lastName: "",
         address: "",
         status: ""
@@ -22,7 +22,7 @@ export default function AddressForm({ setIsOpen, addUser }) {
         e.preventDefault();
         setFormData(() => {
             return {
-                name: "",
+                firstName: "",
                 lastName: "",
                 address: "",
                 status: ""
@@ -43,8 +43,8 @@ export default function AddressForm({ setIsOpen, addUser }) {
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 required
-                                id="name"
-                                name="name"
+                                id="firstName"
+                                name="firstName"
                                 label="First name"
                                 fullWidth
                                 autoComplete="fname"

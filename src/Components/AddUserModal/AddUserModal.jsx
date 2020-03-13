@@ -30,7 +30,6 @@ export default function TransitionsModal(props) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('FORM SUBMITED');
     setIsOpen(false);
   }
 

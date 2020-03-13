@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -45,6 +44,10 @@ const useStyles = makeStyles(theme => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  error: {
+    color: "#D8000C",
+    backgroundColor: "#FFBABA"
+  }
 }));
 
 export default function SignIn() {
@@ -56,20 +59,27 @@ export default function SignIn() {
     password: ""
   });
 
+  const [ errorMessage, setErrorMessage ] = useState("");
+
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]:e.target.value})
-  }
+  };
+
+  const loginPost = async () => {
+    try {
+      const response = await axios.post('http://localhost:5000/login', formData);
+      localStorage.setItem("token", response.data.token); 
+         
+      history.push("/users");    
+    } catch (error) {
+      setErrorMessage(error.response.data.message);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setFormData(() => {
-      return { 
-          email: "",
-          password: ""
-      }
-    })
-    history.push("/users");
-  }
+    loginPost();
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -108,10 +118,13 @@ export default function SignIn() {
             value={formData.password}
             onChange={handleChange}
           />
-          <FormControlLabel
+          {/* <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
-          />
+          /> */}
+          <Typography className={classes.error} align="center">
+            {errorMessage}
+          </Typography>
           <Button
             type="submit"
             fullWidth
@@ -122,11 +135,11 @@ export default function SignIn() {
             Sign In
           </Button>
           <Grid container>
-            <Grid item xs>
+            {/* <Grid item xs>
               <Link href="#" variant="body2">
                 Forgot password?
               </Link>
-            </Grid>
+            </Grid> */}
             <Grid item>
               <Link href="/signup" variant="body2">
                 {"Don't have an account? Sign Up"}

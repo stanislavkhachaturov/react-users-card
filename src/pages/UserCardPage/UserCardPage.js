@@ -1,9 +1,6 @@
-import React from 'react';
-import { useHistory } from "react-router-dom";
-import Button from '@material-ui/core/Button';
-import EditUserModal from '../EditUserModal/EditUserModal';
+import React, { useState, useEffect } from 'react';
+import axios from "axios";
 import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -34,8 +31,7 @@ const useStyles = makeStyles(theme => ({
   },
   cardMedia: {
     paddingTop: '56.25%', // 16:9
-    backgroundSize: "contain",
-    cursor: "pointer"
+    backgroundSize: "contain"
   },
   cardContent: {
     flexGrow: 1,
@@ -61,61 +57,109 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-
-export default function UserList({ saveСhangedUser, currentUser, users, editUser, setIsOpenEdit, isOpenEdit, deleteUser, searchTerm}) {
-  const history = useHistory();
+export default function UserCardPage(props) {
   const classes = useStyles();
+  const id = props.match.params.id;
+
+  const [currentUser, setCurrentUser] = useState({});
+
+  const getUser = async () => {
+    try {
+      
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5000/users/" + id, {
+        headers: {
+          "Authorization": `Basic ${token}`
+        }
+      });
+      const userCard = response.data;
+      
+      setCurrentUser(userCard);   
+    } catch (error) {
+      console.log("error", error)
+    }
+  };
+
+  useEffect( () => { 
+    getUser(); 
+  }, []);
+
+
+  // const editUser = async (user) => {
+  //   try {
+  //     await axios.patch("http://localhost:5000/users/edit", user, {
+  //       headers: {
+  //         "Authorization": `Basic ${token}`
+  //       }
+  //     });        
+
+  //     //setCurrentUser(newUser);
+
+  //   } catch (error) {
+  //     console.log("error", error)
+  //   }
+  // }
+
+  // const deleteUser = async (userId) => {
+  //   try {
+  //     await axios.post("http://localhost:5000/users/delete", { userId }, {
+  //       headers: {
+  //         "Authorization": `Basic ${token}`
+  //       }
+  //     });    
+      
+  //     //setCurrentUser(newUser);
+
+  //   } catch (error) {
+  //     console.log("error", error)
+  //   }
+  // }
 
   return (
     <>
       <CssBaseline />
       <main>
-        <Container className={classes.cardGrid} maxWidth="md">
+        <Container className={classes.cardGrid}  maxWidth="md">
           {/* End hero unit */}
-          <Grid container spacing={4}>
-            {users.map(user => (
-              <Grid item id={user.id} key={user.id} xs={12} sm={6} md={4}>
+          <Grid >
+              <Grid item id={currentUser._id} key={currentUser._id} xs={10}>
                 <Card className={classes.card}>
                   <CardMedia
-                    onClick={() => {
-                      history.push("/users/" + user.id)
-                    }}
                     className={classes.cardMedia}
-                    image="user-male-icon.png"
+                    image="../user-male-icon.png"
                     title="Image title"
                   />
                   <CardContent className={classes.cardContent}>
                     <Typography gutterBottom variant="h5" component="h2">
-                      {user.firstName}
+                      First name: {currentUser.firstName}
                     </Typography>
                     <Typography gutterBottom variant="h5" component="h2">
-                      {user.lastName}
+                      Last name: {currentUser.lastName}
+                    </Typography>
+                    <Typography gutterBottom variant="h5" component="h2">
+                      Address: {currentUser.address}
+                    </Typography>
+                    <Typography gutterBottom variant="h5" component="h2">
+                      Status: {currentUser.status}
                     </Typography>
                   </CardContent>
-                  <CardActions className={classes.cardActions}>
+                  {/* <CardActions className={classes.cardActions}>
                     <Button size="small" variant="outlined" color="primary" 
                       onClick={() => {
-                        setIsOpenEdit(true);
-                        editUser(user);
+                        editUser(currentUser);
                       }}  >
                       Edit
                     </Button>
                     <Button size="small" variant="outlined" color="secondary"
                       onClick={() => {
-                        deleteUser(user.id);
+                        deleteUser(currentUser.id);
                       }}  >
                       Delete
                     </Button>
-                  </CardActions>
+                  </CardActions> */}
                 </Card>
-              </Grid>             
-            ))}
+              </Grid> 
           </Grid>
-          <EditUserModal 
-            saveСhangedUser={saveСhangedUser} 
-            currentUser={currentUser} 
-            setIsOpenEdit={setIsOpenEdit} 
-            isOpenEdit={isOpenEdit}/>
         </Container>
       </main>
     </>

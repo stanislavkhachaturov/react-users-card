@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
-import AddUserModal from '../../Components/AddUserModal/AddUserModal';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import Grid from '@material-ui/core/Grid';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
-import InputBase from '@material-ui/core/InputBase';
-import IconButton from '@material-ui/core/IconButton';
-import SearchIcon from '@material-ui/icons/Search';
-import UserList from '../../Components/UserList/UserList';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
+import AddUserModal from "../../Components/AddUserModal/AddUserModal";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import Grid from "@material-ui/core/Grid";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import { makeStyles } from "@material-ui/core/styles";
+import Container from "@material-ui/core/Container";
+import InputBase from "@material-ui/core/InputBase";
+import IconButton from "@material-ui/core/IconButton";
+import SearchIcon from "@material-ui/icons/Search";
+import UserList from "../../Components/UserList/UserList";
+import { useHistory } from "react-router-dom";
+import "./style.css";
 
 const useStyles = makeStyles(theme => ({
   icon: {
@@ -29,12 +32,12 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(8),
   },
   card: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
   },
   cardMedia: {
-    paddingTop: '56.25%', // 16:9
+    paddingTop: "56.25%", // 16:9
     backgroundSize: "contain"
   },
   cardContent: {
@@ -45,79 +48,129 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(6),
   },
   createBtn: {
-    backgroundColor: '#3f51b5',
-    border: 'none',
-    color: 'white',
-    padding: '15px 32px',
-    textAlign: 'center',
-    fontSize: '16px',
+    backgroundColor: "#3f51b5",
+    border: "none",
+    color: "white",
+    padding: "15px 32px",
+    textAlign: "center",
+    fontSize: "16px",
     "&:hover": {
       color: "#3f51b5"
     },
+    toolBar: {
+      display: "flex",
+      justify: "space-between !impotant"
+    }
   }
 }));
 
 
 export default function Album() {
   const classes = useStyles();
+  const history = useHistory();
+  const token = localStorage.getItem("token");
 
-  const [users, setUsers] = useState([
-    { id: 1, name: "Tom", lastName: "Last Name", address: "New York", status: "Developer"},
-    { id: 2, name: "Nick", lastName: "Last Name", address: "address", status: "status"},
-    { id: 3, name: "Ivan", lastName: "Last Name", address: "address", status: "status"},
-    { id: 4, name: "Sergey", lastName: "Last Name", address: "address", status: "status"},
-    { id: 5, name: "Roman", lastName: "Last Name", address: "address", status: "status"},
-    { id: 6, name: "Mia", lastName: "Last Name", address: "address", status: "status"},
-  ]);
+  const [users, setUsers] = useState([]);
 
   const [currentUser, setCurrentUser] = useState({});
 
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenEdit, setIsOpenEdit] = useState(false);
 
-  const [searchTerm, setSearchValue] = useState('');
+  const [searchTerm, setSearchValue] = useState("");
 
-  const addUser = (user) => {
-    const newArr = [
-      ...users,
-      user
-    ];
+  const getUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5000/users", {
+        headers: {
+          "Authorization": `Basic ${token}`
+        }
+      });
+      const { userCards } = response.data;
 
-    setUsers(newArr);
+      setUsers(userCards);       
+    } catch (error) {
+      console.log("error", error)
+    }
+  };
+
+  useEffect( () => { 
+    getUsers(); 
+  }, []);
+
+  const addUser = async (user) => {
+    try {
+      const response = await axios.post("http://localhost:5000/users/create", user, {
+        headers: {
+          "Authorization": `Basic ${token}`
+        }
+      });
+
+      const { createdUser } = response.data;
+      setUsers((prevState) => [...prevState, createdUser]);      
+      
+    } catch (error) {
+      console.log("error", error)
+    }
   }
 
   const editUser = (user) => setCurrentUser(user)
 
-  const saveСhangedUser = (user) => {
-    const newArr = users.map(u => {
-      if (u.id === user.id) {
-        return user;
-      }
-      return u;
-    });
-    setUsers(newArr);
+  const saveСhangedUser = async (user) => {
+    try {
+      await axios.patch("http://localhost:5000/users/edit", user, {
+        headers: {
+          "Authorization": `Basic ${token}`
+        }
+      });    
+      
+      const newArr = users.map(u => {
+        if (u.id === user.id) {
+          return user;
+        }
+        return u;
+      });
+
+      setUsers(newArr);
+
+    } catch (error) {
+      console.log("error", error)
+    }
   }
 
-  const deleteUser = (user) => {
-    const newArr = users.filter(u => u.id !== user);
-    setUsers(newArr);
+  const deleteUser = async (userId) => {
+    try {
+      await axios.post("http://localhost:5000/users/delete", { userId }, {
+        headers: {
+          "Authorization": `Basic ${token}`
+        }
+      });    
+      
+      const newArr = users.filter(u => u.id !== userId);
+      setUsers(newArr);
+
+    } catch (error) {
+      console.log("error", error)
+    }
   }
 
+  const filteredUsers = users.filter(user => user.firstName.toLowerCase().includes(searchTerm.toLowerCase()));
 
-
-  console.log('SEARCH TERM', searchTerm);
-
-  const filteredUsers = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  console.log('Filtered users', filteredUsers);
   return (
     <>
       <CssBaseline />
       <AppBar position="relative">
-        <Toolbar>
-          <Typography variant="h6" color="inherit" noWrap>
-            All users
-          </Typography>
+        <Toolbar >
+          <div className="toolBar">
+            <Typography variant="h6" color="inherit" noWrap>
+              All users
+            </Typography>
+            <Button onClick={() => {
+              localStorage.removeItem('token');
+              history.push("/users");    
+              }} variant="outlined">Logout</Button>
+          </div>
         </Toolbar>
       </AppBar>
       <main>
@@ -136,7 +189,7 @@ export default function Album() {
                     onChange={(e) => setSearchValue(e.target.value)}
                     value={searchTerm.value}
                     placeholder="Search User"
-                    inputProps={{ 'aria-label': 'search user' }}
+                    inputProps={{ "aria-label": "search user" }}
                   />
                   <IconButton className={classes.iconButton} aria-label="search">
                     <SearchIcon />

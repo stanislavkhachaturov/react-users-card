@@ -38,8 +38,8 @@ export default function AddressForm({ setIsOpenEdit, saveСhangedUser, currentUs
                     <TextField
                         className={classes.margin}
                         label="First name"
-                        name="name"
-                        value={user.name}
+                        name="firstName"
+                        value={user.firstName}
                         onChange={handleChange}
                         InputProps={{
                         startAdornment: (
